@@ -2,9 +2,11 @@ const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
 const pg = require('pg');
+const bcrypt = require('bcrypt');
 require('dotenv').config();
 const app = express();
 const PORT = 5000;
+const saltRounds = 3;
 
 app.use(cors());
 app.use(express.json());
@@ -29,8 +31,6 @@ app.get("/", async (req, res) => {
       res.status(500).send("Error loading page");
   }
 });
-
-
 
 async function fetchGameWithRetry(typedGame, retries = 3) {
   try {
@@ -102,11 +102,26 @@ app.post("/deleteGame", async (req,res) => {
 app.post("/signUp", async (req, res) => {
   const typedEmail = req.body.email;
   const typedPassword = req.body.password;
-  console.log("Email:", typedEmail);
-  console.log("Password:", typedPassword);
-  res.status(201).send({ ok: true });
 
-  
+  try {
+    const result = await db.query("SELECT * FROM users WHERE email = $1",[typedEmail]);
+    if (result.rows.length == 0) {
+      bcrypt.hash(typedPassword, saltRounds, async (err, hash) => {
+        if (err) {
+          console.error("Error hashing password:", err);
+        } else {
+          console.log("hashed password: ", hash);
+          await db.query("INSERT INTO users (email, password_hash) VALUES ($1, $2)", [typedEmail, hash]);
+          res.status(201).send({ ok: true });
+        }
+      })
+    }
+  } catch (error) {
+    console.log(error);
+  }
+
+
+
 });
 
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
