@@ -93,14 +93,20 @@ app.post("/saveGame", async (req, res) => {
   }
 });
 
-
-
-
-
 app.post("/deleteGame", async (req,res) => {
   const name = req.body.game_name;
   db.query("DELETE FROM playedgames WHERE game_name = $1",[name]);
   res.redirect("/");
-})
+});
+
+app.post("/signUp", async (req, res) => {
+  const typedEmail = req.body.email;
+  const typedPassword = req.body.password;
+  console.log("Email:", typedEmail);
+  console.log("Password:", typedPassword);
+  res.status(201).send({ ok: true });
+
+  
+});
 
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

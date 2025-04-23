@@ -1,8 +1,11 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
+import { ScreenContext } from '../contexts/ScreenContext';
+import { MdLogout } from "react-icons/md";
 import axios from "axios";
 
 function Header(props) {
   const [searchInput, setSearchInput] = useState("");
+  const { setCurrentScreen } = useContext(ScreenContext);
 
   function handleInputChange(event){
     setSearchInput(event.target.value);
@@ -17,6 +20,10 @@ function Header(props) {
       setSearchInput("");
     }
   };
+
+  function logout() {
+    setCurrentScreen("login");
+  }
 
   return (
     <header className="py-3 mb-3 border-bottom">
@@ -37,6 +44,7 @@ function Header(props) {
               onChange={handleInputChange}
             />
           </form>
+          <MdLogout onClick={logout} />
         </div>
       </div>
     </header>
