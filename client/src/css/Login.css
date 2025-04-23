@@ -60,3 +60,10 @@
     color: #666;
     font-size: 0.9rem;
 }
+
+.login-container p{
+    text-align: center;
+    margin-top: 10px;
+    margin-bottom: 0;
+    color: red;
+}

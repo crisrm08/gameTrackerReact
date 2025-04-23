@@ -23,7 +23,7 @@ db.connect();
 
 app.get("/", async (req, res) => {
   try {
-      const getGames = await db.query("SELECT * FROM playedgames");
+      const getGames = await db.query("SELECT * FROM playedgames WHERE user_id = 3");
       const games = getGames.rows; 
       res.json(games);
   } catch (error) {
@@ -77,12 +77,13 @@ app.post("/saveGame", async (req, res) => {
 
   try {
     await db.query(
-      `INSERT INTO playedgames (game_name, game_image, ratings, last_time_played)
-       VALUES ($1, $2, $3, $4)
+      `INSERT INTO playedgames (game_name, game_image, ratings, last_time_played, user_id)
+       VALUES ($1, $2, $3, $4, 3)
        ON CONFLICT (game_name) DO UPDATE SET
          game_image = EXCLUDED.game_image,
          ratings = EXCLUDED.ratings,
-         last_time_played = EXCLUDED.last_time_played`,
+         last_time_played = EXCLUDED.last_time_played,
+         user_id = 3;`,
       [game_name, game_image, ratings, last_time_played]
     );
 
@@ -119,9 +120,42 @@ app.post("/signUp", async (req, res) => {
   } catch (error) {
     console.log(error);
   }
+});
 
+app.post("/logIn", async (req, res) => {
+  const typedEmail = req.body.email;
+  const typedPassword = req.body.password;
 
-
+  try {
+    const result = await db.query("SELECT password_hash FROM users WHERE email = $1", [
+      typedEmail,
+    ]);
+    if (result.rows.length > 0) {
+      const storedHashedPassword = result.rows[0].password_hash;
+      console.log(storedHashedPassword);
+    
+      bcrypt.compare(typedPassword, storedHashedPassword, (err, result) => {
+        if (err) {
+          console.error("Error comparing passwords:", err);
+        } else {
+          if (result) {
+            res.send(true);
+            console.log("Passwords match");
+            
+          } else {
+            res.send("Incorrect Password");
+            console.log("Incorrect password");
+            
+          }
+        }
+      });
+    } else {
+      res.send("User not found");
+    }
+  } catch (err) {
+    console.log(err);
+  }
+  
 });
 
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
