@@ -1,11 +1,13 @@
 import React, { useContext, useState } from "react";
 import { ScreenContext } from '../contexts/ScreenContext';
+import { LoggedContext } from "../contexts/LoggedContext";
 import { MdLogout } from "react-icons/md";
 import axios from "axios";
 
 function Header(props) {
   const [searchInput, setSearchInput] = useState("");
   const { setCurrentScreen } = useContext(ScreenContext);
+  const { setIsLoggedIn } = useContext(LoggedContext);
 
   function handleInputChange(event){
     setSearchInput(event.target.value);
@@ -22,7 +24,9 @@ function Header(props) {
   };
 
   function logout() {
+    axios.post("http://localhost:5000/logOut", {withCredentials: true});
     setCurrentScreen("login");
+    setIsLoggedIn(false);
   }
 
   return (

@@ -2,31 +2,38 @@ import React, {useContext, useState} from 'react';
 import axios from 'axios';
 import '../css/Login.css';
 import { ScreenContext } from '../contexts/ScreenContext';
+import { LoggedContext } from '../contexts/LoggedContext';
 
 function Login() {
     const { setCurrentScreen } = useContext(ScreenContext);
+    const { setIsLoggedIn } = useContext(LoggedContext);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [wrongPassword, setWrongPassword] = useState(false);
     const [errorMessage, setErrorMessage] = useState();
 
-    
-
     function handleSignUp() {
         axios
-        .post("http://localhost:5000/signUp", {email, password})
-        .then(() => {setCurrentScreen("dashboard")})
+        .post("http://localhost:5000/signUp", {email, password}, { withCredentials: true })
+        .then((response) => {
+            if (response.data.success) {
+                setCurrentScreen("games");
+                setIsLoggedIn(true);
+            }
+           })
         .catch();
     }
 
     function handleLogIn() {
-        axios.post("http://localhost:5000/logIn", {email, password})
+        axios.post("http://localhost:5000/logIn", {email, password}, { withCredentials: true })
         .then((response) => {
-            if (response.data === true) {
-                setCurrentScreen("dashboard");
+            if (response.data.success === true) {
+                console.log("succes");
+                setIsLoggedIn(true);
             } else { 
+                console.log("wrong");
                 setWrongPassword(true);
-                setErrorMessage("Wrong password");
+                setErrorMessage(response.data.message);
             }
         })
         .catch((err) => {

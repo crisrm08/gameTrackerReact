@@ -3,12 +3,15 @@ import ReactDOM from 'react-dom/client';
 import './css/index.css';
 import App from './App';
 import { ScreenProvider } from './contexts/ScreenContext'
+import { LoggedProvider } from './contexts/LoggedContext';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
     <ScreenProvider>
-    <App />
+      <LoggedProvider>
+        <App />
+      </LoggedProvider>
     </ScreenProvider >
   </React.StrictMode>
 );

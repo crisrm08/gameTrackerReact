@@ -5,26 +5,38 @@ import './css/Card.css';
 import axios from 'axios';
 import GameCard from './components/GameCard';
 import { ScreenContext } from './contexts/ScreenContext';
+import { LoggedContext } from './contexts/LoggedContext';
 import Login from './components/Login';
 
 function App() {
   const [games, setGames] = useState([]);
   const [searchResult, setSearchResult] = useState(null);
-  const [error, setError] = useState(null);
-  const { currentScreen } = useContext(ScreenContext);
+  const [gameNotFound, setGameNotFound] = useState(false);
+  const { currentScreen, setCurrentScreen } = useContext(ScreenContext);
+  const { isLoggedIn } = useContext(LoggedContext);
 
  useEffect(() => {
-  axios.get("http://localhost:5000/")
-    .then((res) => setGames(res.data))
+  axios.get("http://localhost:5000/", { withCredentials: true })
+    .then((response) => {
+      if (response.data === false || isLoggedIn === false) {
+        setCurrentScreen("login");
+      } else {
+        setCurrentScreen("games");
+        setGames(response.data);
+      }
+    })
     .catch((err) => {
       console.error("Error fetching games:", err);
-      setError("Failed to load games. Please try again later.");
     });
-}, [searchResult]);
+}, [searchResult, isLoggedIn]);
+
+useEffect(() => {
+  console.log("🚨 gameNotFound changed:", gameNotFound);
+}, [gameNotFound]);
 
   function handleSave(updatedGame) {
     setSearchResult(null);
-    axios.post("http://localhost:5000/saveGame", updatedGame)
+    axios.post("http://localhost:5000/saveGame", updatedGame, { withCredentials: true })
       .then(() => {
         setGames((prevGames) =>
           prevGames.map((game) =>
@@ -37,33 +49,39 @@ function App() {
 
   function handleDelete(gameName) {
     try {
-      axios.post("http://localhost:5000/deleteGame", { game_name: gameName });
+      axios.post("http://localhost:5000/deleteGame", { game_name: gameName }, { withCredentials: true });
       setGames((prevGames) => prevGames.filter((game) => game.game_name !== gameName));
     } catch (error) {
       console.error("Error deleting game:", error);
     }
   };
 
-  async function handleSearch(searchInput){
-    try {
-      const response = await axios.get(`http://localhost:5000/getGame?input=${searchInput}`);
-      setSearchResult(response.data); 
-      setError(null); 
-    } catch (error) {
-      console.error("Error searching game:", error);
+  async function handleSearch(searchInput) {
+    const { data } = await axios.get(
+      `http://localhost:5000/getGame?input=${encodeURIComponent(searchInput)}`
+    );
+
+    console.log("data: ", data);
+    console.log("data.success: ", data.success);
+    
+    if (data.success === false) {
+      setGameNotFound(true);
       setSearchResult(null);
-      setError("Game not found");
+    } else {
+      setGameNotFound(false);
+      setSearchResult(data);
     }
   };
+  
 
   return (
     <div className="App">
       {currentScreen === "login" ? (
         <Login />
-      ) : (
+      ) : currentScreen === "games" && (
         <>
           <Header onSearch={handleSearch} />
-          {error && <h2>{error}</h2>}
+          {gameNotFound && <h2>Sorry, game not found</h2>}
           <div className="game-list">
             {searchResult ? (
               <div>
@@ -81,7 +99,7 @@ function App() {
                 </button>
               </div>
             ) : (
-              games.map((game) => (
+              games.map(game => (
                 <GameCard
                   key={game.game_name}
                   game_name={game.game_name}
@@ -97,7 +115,7 @@ function App() {
         </>
       )}
     </div>
-  );
+  );  
 }
 
 export default App;

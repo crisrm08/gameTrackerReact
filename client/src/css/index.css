@@ -13,6 +13,11 @@ body{
   background-color: white;
 }
 
+h2{
+  color: #FFFFFF;
+  text-align: center;
+}
+
 .logo{
   display: flex;
   flex-direction: row;
@@ -33,6 +38,7 @@ body{
   gap: 40px;
  }
  
+
  .game-list h1{
   color: #FFFFFF;
  }
